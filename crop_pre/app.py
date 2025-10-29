@@ -13,8 +13,8 @@ print("Files in deployment directory:", os.listdir('.'))
 
 # Load model and encoder
 try:
-    model = joblib.load('crop_pre/crop_rf_model.joblib')
-    label_encoder = joblib.load('crop_pre/label_encoder.joblib')
+    model = joblib.load('crop_rf_model.joblib')
+    label_encoder = joblib.load('label_encoder.joblib')
     print("Model & encoder loaded")
 except Exception as e:
     print(f"Load error: {e}")
