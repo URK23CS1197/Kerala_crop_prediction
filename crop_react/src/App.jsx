@@ -28,7 +28,8 @@ export default function App() {
     setPredictions([]);
 
     try {
-      const res = await fetch("/predict", {
+      // Send requests to your Render backend
+      const res = await fetch("https://kerala-crop-prediction1.onrender.com/predict", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(form),
@@ -37,7 +38,6 @@ export default function App() {
 
       if (data.success) {
         setPredictions(data.predictions);
-        // Trigger confetti
         if (typeof window.confetti === "function") {
           window.confetti({
             particleCount: 100,
@@ -49,7 +49,7 @@ export default function App() {
         setError(data.error || "Prediction failed");
       }
     } catch (err) {
-      setError("Network error – is Flask running on http://localhost:5000?");
+      setError("Network error – is backend up at https://kerala-crop-prediction1.onrender.com?");
     } finally {
       setLoading(false);
     }
@@ -100,14 +100,12 @@ export default function App() {
   return (
     <>
       <div className="min-h-screen bg-gradient-to-br from-green-50 via-emerald-50 to-teal-50 p-4 md:p-8 relative overflow-hidden">
-        {/* Background Decoration */}
         <div className="absolute inset-0 opacity-30">
           <div className="absolute top-20 left-20 w-96 h-96 bg-gradient-to-br from-green-300 to-emerald-500 rounded-full blur-3xl"></div>
           <div className="absolute bottom-20 right-20 w-80 h-80 bg-gradient-to-tr from-cyan-300 to-blue-500 rounded-full blur-3xl"></div>
         </div>
 
         <div className="max-w-5xl mx-auto relative z-10">
-          {/* Hero Header */}
           <div className="text-center mb-12 animate-fade-in">
             <h1 className="text-5xl md:text-6xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-green-600 via-emerald-600 to-teal-700">
               Kerala Crop Recommender
@@ -122,7 +120,6 @@ export default function App() {
             </div>
           </div>
 
-          {/* Input Card */}
           <div className="backdrop-blur-xl bg-white/80 rounded-3xl shadow-2xl p-6 md:p-8 mb-8 border border-white/50">
             <form onSubmit={handleSubmit} className="grid md:grid-cols-2 gap-5">
               {inputs.map((f) => (
@@ -184,7 +181,6 @@ export default function App() {
             </form>
           </div>
 
-          {/* Error Alert */}
           {error && (
             <div className="alert alert-error shadow-lg backdrop-blur bg-red-500/90 text-white mb-6 animate-pulse">
               <svg xmlns="http://www.w3.org/2000/svg" className="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
@@ -194,7 +190,6 @@ export default function App() {
             </div>
           )}
 
-          {/* Results */}
           {predictions.length > 0 && (
             <div className="space-y-6">
               <h2 className="text-3xl font-bold text-center bg-clip-text text-transparent bg-gradient-to-r from-emerald-600 to-teal-700">
@@ -211,7 +206,6 @@ export default function App() {
                       className="group relative overflow-hidden bg-white/80 backdrop-blur-xl rounded-2xl shadow-xl p-6 border border-white/50 transform hover:scale-105 transition-all duration-500 hover:shadow-2xl"
                       style={{ animation: `fadeInUp 0.6s ease-out forwards`, animationDelay: `${i * 0.15}s` }}
                     >
-                      {/* Gradient Border Effect */}
                       <div className={`absolute inset-0 bg-gradient-to-r ${i === 0 ? 'from-yellow-400 via-amber-500 to-orange-500' : i === 1 ? 'from-gray-300 to-gray-500' : i === 2 ? 'from-orange-400 to-red-500' : 'from-green-400 to-emerald-600'} opacity-0 group-hover:opacity-100 transition-opacity rounded-2xl -z-10 blur-xl`}></div>
 
                       <div className="flex items-center justify-between">
@@ -219,7 +213,7 @@ export default function App() {
                           <div className="text-5xl animate-bounce">{rankEmoji(i)}</div>
                           <div>
                             <div className="text-2xl font-bold capitalize flex items-center gap-2">
-                              {icon} {  p.crop}
+                              {icon} {p.crop}
                             </div>
                             <div className="flex items-center gap-3 mt-1">
                               <span className="text-sm text-gray-600">Rank #{i + 1}</span>
@@ -260,7 +254,6 @@ export default function App() {
         </div>
       </div>
 
-      {/* Custom Animations */}
       <style jsx>{`
         @keyframes fadeInUp {
           from {
@@ -279,7 +272,6 @@ export default function App() {
         .animate-fade-in { animation: fadeIn 1s ease-out; }
       `}</style>
 
-      {/* Confetti Script */}
       <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     </>
   );
