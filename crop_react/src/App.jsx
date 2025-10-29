@@ -219,7 +219,7 @@ export default function App() {
                           <div className="text-5xl animate-bounce">{rankEmoji(i)}</div>
                           <div>
                             <div className="text-2xl font-bold capitalize flex items-center gap-2">
-                              {icon} {  p.crop}
+                              {icon} {p.crop.replace(/^Leaf\s*/i, "")}
                             </div>
                             <div className="flex items-center gap-3 mt-1">
                               <span className="text-sm text-gray-600">Rank #{i + 1}</span>
