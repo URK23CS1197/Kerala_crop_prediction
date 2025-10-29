@@ -8,6 +8,9 @@ import os
 app = Flask(__name__)
 CORS(app)
 
+# Print current directory files for debugging
+print("Files in deployment directory:", os.listdir('.'))
+
 # Load model and encoder
 try:
     model = joblib.load('crop_rf_model.joblib')
