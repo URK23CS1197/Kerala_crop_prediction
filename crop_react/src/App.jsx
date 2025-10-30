@@ -18,7 +18,6 @@ export default function App() {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    // Allow only numeric values or empty string
     if (value === "" || /^[0-9]*\.?[0-9]*$/.test(value)) {
       setForm((prev) => ({ ...prev, [name]: value }));
       setError("");
@@ -28,7 +27,6 @@ export default function App() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Basic validation: Ensure all fields are filled and within range
     for (const field of Object.keys(form)) {
       if (form[field] === "") {
         setError(`Please enter ${field}`);
@@ -41,7 +39,8 @@ export default function App() {
     setPredictions([]);
 
     try {
-      const response = await fetch("/predict", {
+      // Use the full backend URL!
+      const response = await fetch("https://kerala-crop-prediction1.onrender.com/predict", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(
@@ -125,14 +124,12 @@ export default function App() {
   return (
     <>
       <div className="min-h-screen bg-gradient-to-br from-green-50 via-emerald-50 to-teal-50 p-4 md:p-8 relative overflow-hidden">
-        {/* Background Decoration */}
         <div className="absolute inset-0 opacity-30">
           <div className="absolute top-20 left-20 w-96 h-96 bg-gradient-to-br from-green-300 to-emerald-500 rounded-full blur-3xl"></div>
           <div className="absolute bottom-20 right-20 w-80 h-80 bg-gradient-to-tr from-cyan-300 to-blue-500 rounded-full blur-3xl"></div>
         </div>
 
         <div className="max-w-5xl mx-auto relative z-10">
-          {/* Hero Header */}
           <div className="text-center mb-12 animate-fade-in">
             <h1 className="text-5xl md:text-6xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-green-600 via-emerald-600 to-teal-700">
               Kerala Crop Recommender
@@ -146,8 +143,6 @@ export default function App() {
               ))}
             </div>
           </div>
-
-          {/* Input Card */}
           <div className="backdrop-blur-xl bg-white/80 rounded-3xl shadow-2xl p-6 md:p-8 mb-8 border border-white/50">
             <form onSubmit={handleSubmit} className="grid md:grid-cols-2 gap-5">
               {inputs.map((field) => (
@@ -177,7 +172,6 @@ export default function App() {
                   </span>
                 </div>
               ))}
-
               <div className="md:col-span-2 flex gap-4 mt-6">
                 <button
                   type="submit"
@@ -213,8 +207,6 @@ export default function App() {
               </div>
             </form>
           </div>
-
-          {/* Error Alert */}
           {error && (
             <div className="alert alert-error shadow-lg backdrop-blur bg-red-500/90 text-white mb-6 animate-pulse">
               <svg xmlns="http://www.w3.org/2000/svg" className="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
@@ -223,18 +215,15 @@ export default function App() {
               <span>{error}</span>
             </div>
           )}
-
-          {/* Results */}
           {predictions.length > 0 && (
             <div className="space-y-6">
               <h2 className="text-3xl font-bold text-center bg-clip-text text-transparent bg-gradient-to-r from-emerald-600 to-teal-700">
                 Top 5 Recommended Crops
               </h2>
-
               <div className="grid gap-5">
                 {predictions.map((p, i) => {
                   const badge = confidenceBadge(p.probability);
-                  const icon = cropIcons[p.crop.toLowerCase()] || "Leaf";
+                  const icon = cropIcons[p.crop?.toLowerCase()] || "Leaf";
                   return (
                     <div
                       key={i}
@@ -242,7 +231,6 @@ export default function App() {
                       style={{ animation: `fadeInUp 0.6s ease-out forwards`, animationDelay: `${i * 0.15}s` }}
                     >
                       <div className={`absolute inset-0 bg-gradient-to-r ${i === 0 ? 'from-yellow-400 via-amber-500 to-orange-500' : i === 1 ? 'from-gray-300 to-gray-500' : i === 2 ? 'from-orange-400 to-red-500' : 'from-green-400 to-emerald-600'} opacity-0 group-hover:opacity-100 transition-opacity rounded-2xl -z-10 blur-xl`}></div>
-
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-5">
                           <div className="text-5xl animate-bounce">{rankEmoji(i)}</div>
@@ -258,7 +246,6 @@ export default function App() {
                             </div>
                           </div>
                         </div>
-
                         <div className="text-right">
                           <div className="text-4xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-emerald-500 to-teal-600">
                             {p.probability}%
@@ -266,7 +253,6 @@ export default function App() {
                           <div className="text-sm text-gray-600">Suitability Score</div>
                         </div>
                       </div>
-
                       <progress
                         className={`progress w-full h-4 mt-4 rounded-full ${
                           p.probability >= 15 ? 'progress-success' : p.probability >= 10 ? 'progress-warning' : 'progress-error'
@@ -278,7 +264,6 @@ export default function App() {
                   );
                 })}
               </div>
-
               <div className="text-center mt-8">
                 <p className="text-sm text-gray-600">
                   Based on NPK, climate, and soil data • Powered by Machine Learning
@@ -288,8 +273,6 @@ export default function App() {
           )}
         </div>
       </div>
-
-      {/* Custom Animations */}
       <style jsx>{`
         @keyframes fadeInUp {
           from {
@@ -307,8 +290,6 @@ export default function App() {
         }
         .animate-fade-in { animation: fadeIn 1s ease-out; }
       `}</style>
-
-      {/* Confetti Script */}
       <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     </>
   );
