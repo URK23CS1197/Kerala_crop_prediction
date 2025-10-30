@@ -17,27 +17,50 @@ export default function App() {
   const [predictions, setPredictions] = useState([]);
 
   const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
-    setError("");
+    const { name, value } = e.target;
+    // Allow only numeric values or empty string
+    if (value === "" || /^[0-9]*\.?[0-9]*$/.test(value)) {
+      setForm((prev) => ({ ...prev, [name]: value }));
+      setError("");
+    }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    // Basic validation: Ensure all fields are filled and within range
+    for (const field of Object.keys(form)) {
+      if (form[field] === "") {
+        setError(`Please enter ${field}`);
+        return;
+      }
+    }
+
     setLoading(true);
     setError("");
     setPredictions([]);
 
     try {
-      // Send requests to your Render backend
-      const res = await fetch("https://kerala-crop-prediction1.onrender.com/predict", {
+      const response = await fetch("/predict", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
+        body: JSON.stringify(
+          Object.fromEntries(
+            Object.entries(form).map(([k, v]) => [k, parseFloat(v)])
+          )
+        ),
       });
-      const data = await res.json();
 
-      if (data.success) {
+      if (!response.ok) {
+        const text = await response.text();
+        throw new Error(`Server error: ${text || response.statusText}`);
+      }
+
+      const data = await response.json();
+
+      if (data.success && Array.isArray(data.predictions)) {
         setPredictions(data.predictions);
+
         if (typeof window.confetti === "function") {
           window.confetti({
             particleCount: 100,
@@ -49,13 +72,15 @@ export default function App() {
         setError(data.error || "Prediction failed");
       }
     } catch (err) {
-      setError("Network error – is backend up at https://kerala-crop-prediction1.onrender.com?");
+      setError(err.message || "Network error – is Flask running on http://localhost:5000?");
     } finally {
       setLoading(false);
     }
   };
 
-  const rankEmoji = (i) => ["1st Place", "2nd Place", "3rd Place", "4th Place", "5th Place"][i] ?? "Leaf";
+  const rankEmoji = (i) =>
+    ["1st Place", "2nd Place", "3rd Place", "4th Place", "5th Place"][i] ?? "Leaf";
+
   const confidenceBadge = (p) => {
     if (p >= 15) return { cls: "bg-emerald-500 text-white", txt: "High", icon: "Strong" };
     if (p >= 10) return { cls: "bg-amber-500 text-white", txt: "Medium", icon: "Moderate" };
@@ -63,28 +88,28 @@ export default function App() {
   };
 
   const cropIcons = {
-    "rice": "Rice",
-    "maize": "Corn",
-    "jute": "Fiber",
-    "cotton": "Cotton",
-    "coconut": "Coconut",
-    "papaya": "Papaya",
-    "orange": "Orange",
-    "apple": "Apple",
-    "muskmelon": "Melon",
-    "watermelon": "Watermelon",
-    "grapes": "Grapes",
-    "mango": "Mango",
-    "banana": "Banana",
-    "pomegranate": "Pomegranate",
-    "lentil": "Lentil",
-    "blackgram": "Bean",
-    "mungbean": "Mung",
-    "mothbeans": "Bean",
-    "pigeonpeas": "Pea",
-    "kidneybeans": "Bean",
-    "chickpea": "Chickpea",
-    "coffee": "Coffee"
+    rice: "Rice",
+    maize: "Corn",
+    jute: "Fiber",
+    cotton: "Cotton",
+    coconut: "Coconut",
+    papaya: "Papaya",
+    orange: "Orange",
+    apple: "Apple",
+    muskmelon: "Melon",
+    watermelon: "Watermelon",
+    grapes: "Grapes",
+    mango: "Mango",
+    banana: "Banana",
+    pomegranate: "Pomegranate",
+    lentil: "Lentil",
+    blackgram: "Bean",
+    mungbean: "Mung",
+    mothbeans: "Bean",
+    pigeonpeas: "Pea",
+    kidneybeans: "Bean",
+    chickpea: "Chickpea",
+    coffee: "Coffee"
   };
 
   const inputs = [
@@ -94,18 +119,20 @@ export default function App() {
     { name: "temperature", label: "Temperature", icon: <Thermometer className="w-5 h-5" />, unit: "°C", min: 10, max: 45, color: "from-orange-400 to-red-600" },
     { name: "humidity", label: "Humidity", icon: <Droplets className="w-5 h-5" />, unit: "%", min: 0, max: 100, color: "from-sky-400 to-blue-600" },
     { name: "ph", label: "Soil pH", icon: <Beaker className="w-5 h-5" />, unit: "pH", min: 4, max: 9, color: "from-indigo-400 to-purple-600" },
-    { name: "rainfall", label: "Rainfall", icon: <CloudRain className="w-5 h-5" />, unit: "mm", min: 0, max: 3000, color: "from-teal-400 to-cyan-600" },
+    { name: "rainfall", label: "Rainfall", icon: <CloudRain className="w-5 h-5" />, unit: "mm", min: 0, max: 3000, color: "from-teal-400 to-cyan-600" }
   ];
 
   return (
     <>
       <div className="min-h-screen bg-gradient-to-br from-green-50 via-emerald-50 to-teal-50 p-4 md:p-8 relative overflow-hidden">
+        {/* Background Decoration */}
         <div className="absolute inset-0 opacity-30">
           <div className="absolute top-20 left-20 w-96 h-96 bg-gradient-to-br from-green-300 to-emerald-500 rounded-full blur-3xl"></div>
           <div className="absolute bottom-20 right-20 w-80 h-80 bg-gradient-to-tr from-cyan-300 to-blue-500 rounded-full blur-3xl"></div>
         </div>
 
         <div className="max-w-5xl mx-auto relative z-10">
+          {/* Hero Header */}
           <div className="text-center mb-12 animate-fade-in">
             <h1 className="text-5xl md:text-6xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-green-600 via-emerald-600 to-teal-700">
               Kerala Crop Recommender
@@ -120,32 +147,33 @@ export default function App() {
             </div>
           </div>
 
+          {/* Input Card */}
           <div className="backdrop-blur-xl bg-white/80 rounded-3xl shadow-2xl p-6 md:p-8 mb-8 border border-white/50">
             <form onSubmit={handleSubmit} className="grid md:grid-cols-2 gap-5">
-              {inputs.map((f) => (
-                <div key={f.name} className="relative group">
+              {inputs.map((field) => (
+                <div key={field.name} className="relative group">
                   <div className="flex items-center gap-3 mb-2">
-                    <div className={`p-2 rounded-lg bg-gradient-to-r ${f.color} text-white shadow-lg`}>
-                      {f.icon}
+                    <div className={`p-2 rounded-lg bg-gradient-to-r ${field.color} text-white shadow-lg`}>
+                      {field.icon}
                     </div>
                     <label className="text-sm font-semibold text-gray-700">
-                      {f.label} <span className="text-gray-500 font-normal">({f.unit})</span>
+                      {field.label} <span className="text-gray-500 font-normal">({field.unit})</span>
                     </label>
                   </div>
                   <input
                     type="number"
                     step="0.1"
-                    name={f.name}
-                    min={f.min}
-                    max={f.max}
+                    name={field.name}
+                    min={field.min}
+                    max={field.max}
                     required
-                    className={`w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-transparent focus:ring-4 focus:ring-${f.color.split(' ')[1]}/30 outline-none transition-all bg-white/70 backdrop-blur`}
-                    placeholder={`Enter ${f.label.toLowerCase()}`}
-                    value={form[f.name]}
+                    className={`w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-transparent focus:ring-4 focus:ring-${field.color.split(' ')[1]}/30 outline-none transition-all bg-white/70 backdrop-blur`}
+                    placeholder={`Enter ${field.label.toLowerCase()}`}
+                    value={form[field.name]}
                     onChange={handleChange}
                   />
                   <span className="absolute right-3 top-12 text-xs text-gray-400">
-                    {f.min}–{f.max}
+                    {field.min}–{field.max}
                   </span>
                 </div>
               ))}
@@ -169,8 +197,13 @@ export default function App() {
                   type="button"
                   onClick={() =>
                     setForm({
-                      nitrogen: "", phosphorus: "", potassium: "",
-                      temperature: "", humidity: "", ph: "", rainfall: ""
+                      nitrogen: "",
+                      phosphorus: "",
+                      potassium: "",
+                      temperature: "",
+                      humidity: "",
+                      ph: "",
+                      rainfall: ""
                     })
                   }
                   className="btn btn-ghost border-2 border-gray-300 hover:border-emerald-500 hover:bg-emerald-50"
@@ -181,6 +214,7 @@ export default function App() {
             </form>
           </div>
 
+          {/* Error Alert */}
           {error && (
             <div className="alert alert-error shadow-lg backdrop-blur bg-red-500/90 text-white mb-6 animate-pulse">
               <svg xmlns="http://www.w3.org/2000/svg" className="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
@@ -190,6 +224,7 @@ export default function App() {
             </div>
           )}
 
+          {/* Results */}
           {predictions.length > 0 && (
             <div className="space-y-6">
               <h2 className="text-3xl font-bold text-center bg-clip-text text-transparent bg-gradient-to-r from-emerald-600 to-teal-700">
@@ -254,6 +289,7 @@ export default function App() {
         </div>
       </div>
 
+      {/* Custom Animations */}
       <style jsx>{`
         @keyframes fadeInUp {
           from {
@@ -272,6 +308,7 @@ export default function App() {
         .animate-fade-in { animation: fadeIn 1s ease-out; }
       `}</style>
 
+      {/* Confetti Script */}
       <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     </>
   );
