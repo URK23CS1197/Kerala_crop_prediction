@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, render_template
+from flask import Flask, request, jsonify
 from flask_cors import CORS
 import joblib
 import pandas as pd
@@ -8,8 +8,9 @@ import os
 app = Flask(__name__)
 CORS(app)
 
-# Print current directory files for debugging
+# Debug: List files to verify model presence
 print("Files in deployment directory:", os.listdir('.'))
+print("Files in crop_pre directory:", os.listdir('crop_pre'))
 
 # Load model and encoder
 try:
@@ -31,19 +32,26 @@ def index():
 
 @app.route('/health')
 def health():
-    if 'model' in globals() and 'label_encoder' in globals():
-        return jsonify({"status": "healthy", "model_loaded": True})
-    else:
-        return jsonify({"status": "error", "model_loaded": False}), 500
+    healthy = model is not None and label_encoder is not None
+    return jsonify({"status": "healthy" if healthy else "error", "model_loaded": healthy}), 200 if healthy else 500
 
 @app.route('/predict', methods=['POST'])
 def predict():
     try:
-        data = request.get_json()
+        data = request.get_json(force=True)
+        # Ensure all keys are present
+        expected_keys = ['nitrogen', 'phosphorus', 'potassium', 'temperature', 'humidity', 'ph', 'rainfall']
+        if not data or not all(key in data for key in expected_keys):
+            return jsonify({"success": False, "error": "Missing or incorrect input keys"}), 400
+
         features = [
-            data['N'], data['P'], data['K'],
-            data['temperature'], data['humidity'],
-            data['ph'], data['rainfall']
+            float(data['nitrogen']),
+            float(data['phosphorus']),
+            float(data['potassium']),
+            float(data['temperature']),
+            float(data['humidity']),
+            float(data['ph']),
+            float(data['rainfall'])
         ]
         features_array = np.array([features])
         probs = model.predict_proba(features_array)[0]
@@ -51,10 +59,11 @@ def predict():
         predictions = []
         for idx in top5_idx:
             crop = label_encoder.inverse_transform([idx])[0]
-            prob = probs[idx]
-            predictions.append({"crop": crop, "probability": round(prob, 4)})
+            prob = probs[idx] * 100  # Convert to percent
+            predictions.append({"crop": crop, "probability": round(prob, 2)})
         return jsonify({"success": True, "predictions": predictions})
     except Exception as e:
+        print("Prediction error:", str(e))
         return jsonify({"success": False, "error": str(e)}), 500
 
 if __name__ == '__main__':
