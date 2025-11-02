@@ -40,7 +40,7 @@ export default function App() {
 
     try {
       // Use the full backend URL!
-      const response = await fetch("https://kerala-crop-prediction1.onrender.com/predict", {
+      const response = await fetch("https://kerala-crop-prediction-1.onrender.com/predict", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(
