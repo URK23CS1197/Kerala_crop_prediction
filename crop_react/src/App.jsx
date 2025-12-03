@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { Leaf, CloudRain, Thermometer, Droplets, Beaker, Zap } from "lucide-react";
 
+const BACKEND_URL = "https://kerala-crop-prediction-1.onrender.com";
+
 export default function App() {
   const [form, setForm] = useState({
     nitrogen: "",
@@ -24,6 +26,20 @@ export default function App() {
     }
   };
 
+  const titleCase = (s = "") =>
+    s
+      .toString()
+      .split(" ")
+      .filter(Boolean)
+      .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+      .join(" ");
+
+  const cleanKey = (raw) => {
+    if (!raw) return "";
+    const s = raw.toString().toLowerCase().trim();
+    return s.replace(/^leaf\s+/, "").replace(/\s+/g, " ").trim();
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -39,8 +55,7 @@ export default function App() {
     setPredictions([]);
 
     try {
-      // Use the full backend URL!
-      const response = await fetch("https://kerala-crop-prediction-1.onrender.com/predict", {
+      const response = await fetch(`${BACKEND_URL}/predict`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(
@@ -50,12 +65,12 @@ export default function App() {
         ),
       });
 
-      if (!response.ok) {
-        const text = await response.text();
-        throw new Error(`Server error: ${text || response.statusText}`);
-      }
-
       const data = await response.json();
+      console.log("Prediction response:", data);
+
+      if (!response.ok) {
+        throw new Error(data.error || `Server error: ${response.statusText}`);
+      }
 
       if (data.success && Array.isArray(data.predictions)) {
         setPredictions(data.predictions);
@@ -71,7 +86,7 @@ export default function App() {
         setError(data.error || "Prediction failed");
       }
     } catch (err) {
-      setError(err.message || "Network error – is Flask running on http://localhost:5000?");
+      setError(err.message || "Network error");
     } finally {
       setLoading(false);
     }
@@ -102,13 +117,21 @@ export default function App() {
     banana: "Banana",
     pomegranate: "Pomegranate",
     lentil: "Lentil",
-    blackgram: "Bean",
-    mungbean: "Mung",
-    mothbeans: "Bean",
-    pigeonpeas: "Pea",
-    kidneybeans: "Bean",
+    blackgram: "Blackgram",
+    mungbean: "Mungbean",
+    mothbeans: "Mothbeans",
+    pigeonpeas: "Pigeonpeas",
+    kidneybeans: "Kidneybeans",
     chickpea: "Chickpea",
-    coffee: "Coffee"
+    coffee: "Coffee",
+    sesamum: "Sesamum",
+    "other kharif pulses": "Kharif Pulses",
+    "arhar/tur": "Arhar/Tur",
+    bajra: "Bajra",
+    arecanut: "Arecanut",
+    mesta: "Mesta",
+    turmeric: "Turmeric",
+    "sweet potato": "Sweet Potato"
   };
 
   const inputs = [
@@ -143,6 +166,7 @@ export default function App() {
               ))}
             </div>
           </div>
+
           <div className="backdrop-blur-xl bg-white/80 rounded-3xl shadow-2xl p-6 md:p-8 mb-8 border border-white/50">
             <form onSubmit={handleSubmit} className="grid md:grid-cols-2 gap-5">
               {inputs.map((field) => (
@@ -207,6 +231,7 @@ export default function App() {
               </div>
             </form>
           </div>
+
           {error && (
             <div className="alert alert-error shadow-lg backdrop-blur bg-red-500/90 text-white mb-6 animate-pulse">
               <svg xmlns="http://www.w3.org/2000/svg" className="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
@@ -215,6 +240,7 @@ export default function App() {
               <span>{error}</span>
             </div>
           )}
+
           {predictions.length > 0 && (
             <div className="space-y-6">
               <h2 className="text-3xl font-bold text-center bg-clip-text text-transparent bg-gradient-to-r from-emerald-600 to-teal-700">
@@ -223,7 +249,12 @@ export default function App() {
               <div className="grid gap-5">
                 {predictions.map((p, i) => {
                   const badge = confidenceBadge(p.probability);
-                  const icon = cropIcons[p.crop?.toLowerCase()] || "Leaf";
+                  const rawCrop = p.display && p.display.length ? p.display : (p.crop || "");
+                  const cleaned = cleanKey(rawCrop || p.crop || "");
+                  const displayName = titleCase(cleaned || rawCrop || p.crop || "Unknown");
+                  const iconKey = cleaned || (p.crop || "").toLowerCase().replace(/^leaf\s+/, '').trim();
+                  const icon = cropIcons[iconKey] || "Leaf";
+
                   return (
                     <div
                       key={i}
@@ -236,7 +267,7 @@ export default function App() {
                           <div className="text-5xl animate-bounce">{rankEmoji(i)}</div>
                           <div>
                             <div className="text-2xl font-bold capitalize flex items-center gap-2">
-                              {icon} {p.crop}
+                              {icon} {displayName}
                             </div>
                             <div className="flex items-center gap-3 mt-1">
                               <span className="text-sm text-gray-600">Rank #{i + 1}</span>
@@ -254,12 +285,10 @@ export default function App() {
                         </div>
                       </div>
                       <progress
-                        className={`progress w-full h-4 mt-4 rounded-full ${
-                          p.probability >= 15 ? 'progress-success' : p.probability >= 10 ? 'progress-warning' : 'progress-error'
-                        }`}
+                        className={`progress w-full h-4 mt-4 rounded-full ${p.probability >= 15 ? 'progress-success' : p.probability >= 10 ? 'progress-warning' : 'progress-error'}`}
                         value={p.probability}
                         max="100"
-                      ></progress>
+                      />
                     </div>
                   );
                 })}
@@ -273,6 +302,7 @@ export default function App() {
           )}
         </div>
       </div>
+
       <style jsx>{`
         @keyframes fadeInUp {
           from {
@@ -290,6 +320,7 @@ export default function App() {
         }
         .animate-fade-in { animation: fadeIn 1s ease-out; }
       `}</style>
+
       <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     </>
   );
