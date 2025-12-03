@@ -101,39 +101,6 @@ export default function App() {
     return { cls: "bg-rose-500 text-white", txt: "Low", icon: "Weak" };
   };
 
-  const cropIcons = {
-    rice: "Rice",
-    maize: "Corn",
-    jute: "Fiber",
-    cotton: "Cotton",
-    coconut: "Coconut",
-    papaya: "Papaya",
-    orange: "Orange",
-    apple: "Apple",
-    muskmelon: "Melon",
-    watermelon: "Watermelon",
-    grapes: "Grapes",
-    mango: "Mango",
-    banana: "Banana",
-    pomegranate: "Pomegranate",
-    lentil: "Lentil",
-    blackgram: "Blackgram",
-    mungbean: "Mungbean",
-    mothbeans: "Mothbeans",
-    pigeonpeas: "Pigeonpeas",
-    kidneybeans: "Kidneybeans",
-    chickpea: "Chickpea",
-    coffee: "Coffee",
-    sesamum: "Sesamum",
-    "other kharif pulses": "Kharif Pulses",
-    "arhar/tur": "Arhar/Tur",
-    bajra: "Bajra",
-    arecanut: "Arecanut",
-    mesta: "Mesta",
-    turmeric: "Turmeric",
-    "sweet potato": "Sweet Potato"
-  };
-
   const inputs = [
     { name: "nitrogen", label: "Nitrogen", icon: <Zap className="w-5 h-5" />, unit: "kg/ha", min: 0, max: 300, color: "from-green-400 to-emerald-600" },
     { name: "phosphorus", label: "Phosphorus", icon: <Beaker className="w-5 h-5" />, unit: "kg/ha", min: 0, max: 200, color: "from-blue-400 to-cyan-600" },
@@ -252,8 +219,6 @@ export default function App() {
                   const rawCrop = p.display && p.display.length ? p.display : (p.crop || "");
                   const cleaned = cleanKey(rawCrop || p.crop || "");
                   const displayName = titleCase(cleaned || rawCrop || p.crop || "Unknown");
-                  const iconKey = cleaned || (p.crop || "").toLowerCase().replace(/^leaf\s+/, '').trim();
-                  const icon = cropIcons[iconKey] || "Leaf";
 
                   return (
                     <div
@@ -266,8 +231,8 @@ export default function App() {
                         <div className="flex items-center gap-5">
                           <div className="text-5xl animate-bounce">{rankEmoji(i)}</div>
                           <div>
-                            <div className="text-2xl font-bold capitalize flex items-center gap-2">
-                              {icon} {displayName}
+                            <div className="text-2xl font-bold capitalize">
+                              {displayName}
                             </div>
                             <div className="flex items-center gap-3 mt-1">
                               <span className="text-sm text-gray-600">Rank #{i + 1}</span>
